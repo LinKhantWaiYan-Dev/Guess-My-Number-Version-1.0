@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guess My Number — Play with Dev 'Lin Edition'</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --good:#1fae6a;--bad:#e8607a;--warn:#f0a93b;
+    --shadow:0 18px 40px -18px rgba(15,107,181,.55);
+    --shadow-sm:0 8px 20px -10px rgba(15,107,181,.45);
+    --page-bg:linear-gradient(180deg,#dff4ff 0%,#a9defc 40%,#79c8f6 100%);
+    --card-bg:rgba(255,255,255,.92);--card-border:rgba(255,255,255,.9);--modal-bg:#ffffff;
+    --ink:#103a59;--ink-soft:#3e6c8c;
+    --panel-bg:#f5fbff;--panel-border:#d8eefb;
+    --input-bg:#f3fbff;--input-border:#7cc9f5;
+    --pill-bg:#eaf6ff;--accent:#0f6bb5;--item-bg:#ffffff;--badge-bg:rgba(255,255,255,.7);
+    --btn-grad:linear-gradient(150deg,#4fb0ec,#0f6bb5);
+    --range-grad:linear-gradient(150deg,#7cc9f5,#2b8fd6);
+    --ghost-bg:#eaf6ff;
+    --h1-color:#ffffff;--h1-shadow:0 4px 0 #4fb0ec,0 14px 26px rgba(15,107,181,.45);
+    --you-tint:rgba(31,174,106,.06);
+    --tag-higher-bg:#e6f6ee;--tag-higher-fg:#1fae6a;
+    --tag-lower-bg:#fdeaee;--tag-lower-fg:#e8607a;
+    --tag-correct-bg:#1fae6a;--tag-correct-fg:#fff;
+    --tag-wrong-bg:#fdeaee;--tag-wrong-fg:#e8607a;
+  }
+  body.dark{
+    --shadow:0 18px 46px -16px rgba(0,0,0,.7);--shadow-sm:0 8px 22px -10px rgba(0,0,0,.6);
+    --page-bg:radial-gradient(120% 90% at 70% 0%,#241048 0%,#160b33 45%,#0a0620 100%);
+    --card-bg:rgba(26,18,52,.72);--card-border:rgba(150,124,235,.28);--modal-bg:rgba(26,18,52,.97);
+    --ink:#ece8ff;--ink-soft:#a89fd8;
+    --panel-bg:rgba(36,24,72,.55);--panel-border:rgba(150,124,235,.22);
+    --input-bg:rgba(18,12,40,.6);--input-border:#6d5bd0;
+    --pill-bg:rgba(120,96,220,.2);--accent:#c6b6ff;--item-bg:rgba(46,32,90,.7);--badge-bg:rgba(120,96,220,.2);
+    --btn-grad:linear-gradient(150deg,#7b5cff,#a64bff);
+    --range-grad:linear-gradient(150deg,#6a5cff,#a64bff);
+    --ghost-bg:rgba(120,96,220,.18);
+    --h1-color:#ffffff;--h1-shadow:0 0 26px rgba(166,120,255,.7),0 6px 30px rgba(120,80,255,.5);
+    --you-tint:rgba(95,224,160,.07);
+    --tag-higher-bg:rgba(31,174,106,.22);--tag-higher-fg:#5fe0a0;
+    --tag-lower-bg:rgba(232,96,122,.22);--tag-lower-fg:#ff93ab;
+    --tag-correct-bg:#1fae6a;--tag-correct-fg:#fff;
+    --tag-wrong-bg:rgba(232,96,122,.22);--tag-wrong-fg:#ff93ab;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{font-family:'Nunito',sans-serif;color:var(--ink);background:var(--page-bg);min-height:100vh;overflow-x:hidden;position:relative;transition:background .6s ease,color .4s ease;}
+
+  #sky-decor .sun{position:fixed;top:-70px;right:-70px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff6c8,#ffe27a 55%,rgba(255,226,122,0) 72%);filter:blur(2px);z-index:0;pointer-events:none;}
+  #sky-decor .cloud{position:fixed;background:#f4fbff;border-radius:100px;opacity:.85;z-index:0;box-shadow:0 18px 40px -22px rgba(20,90,150,.4);pointer-events:none;}
+  #sky-decor .cloud::before,#sky-decor .cloud::after{content:"";position:absolute;background:#f4fbff;border-radius:50%;}
+  .c1{width:160px;height:48px;top:14%;left:6%;animation:drift 38s linear infinite;}
+  .c1::before{width:70px;height:70px;top:-32px;left:24px;}.c1::after{width:54px;height:54px;top:-22px;left:84px;}
+  .c2{width:120px;height:38px;top:30%;right:9%;animation:drift2 46s linear infinite;}
+  .c2::before{width:56px;height:56px;top:-26px;left:18px;}.c2::after{width:44px;height:44px;top:-16px;left:64px;}
+  .c3{width:200px;height:56px;bottom:8%;left:12%;animation:drift 60s linear infinite;opacity:.6;}
+  .c3::before{width:84px;height:84px;top:-40px;left:30px;}.c3::after{width:60px;height:60px;top:-24px;left:108px;}
+  @keyframes drift{0%{transform:translateX(-30px)}50%{transform:translateX(40px)}100%{transform:translateX(-30px)}}
+  @keyframes drift2{0%{transform:translateX(30px)}50%{transform:translateX(-40px)}100%{transform:translateX(30px)}}
+
+  #galaxy-decor{display:none;}
+  body.dark #sky-decor{display:none;}
+  body.dark #galaxy-decor{display:block;}
+  #galaxy-decor .moon{position:fixed;top:-50px;right:-50px;width:210px;height:210px;border-radius:50%;z-index:0;pointer-events:none;background:radial-gradient(circle at 38% 38%,#fdfbff,#d6ccff 55%,rgba(180,160,255,0) 72%);filter:blur(1px);opacity:.92;box-shadow:0 0 90px 24px rgba(150,120,255,.28);}
+  #galaxy-decor .nebula{position:fixed;inset:-25%;z-index:0;pointer-events:none;filter:blur(70px);opacity:.6;background:radial-gradient(38% 32% at 24% 28%,rgba(123,92,255,.6),transparent 70%),radial-gradient(34% 30% at 76% 66%,rgba(255,75,180,.42),transparent 70%),radial-gradient(30% 28% at 62% 18%,rgba(60,180,255,.4),transparent 70%);animation:nebula-drift 28s ease-in-out infinite alternate;}
+  @keyframes nebula-drift{from{transform:translate(-2%,-1%) scale(1)}to{transform:translate(3%,2%) scale(1.09)}}
+  #galaxy-decor .stars,#galaxy-decor .stars2{position:fixed;inset:0;z-index:0;pointer-events:none;background-repeat:no-repeat;}
+  #galaxy-decor .stars{background-image:radial-gradient(1.6px 1.6px at 12% 18%,#fff,transparent),radial-gradient(1.2px 1.2px at 28% 42%,#cfe6ff,transparent),radial-gradient(1.6px 1.6px at 45% 12%,#fff,transparent),radial-gradient(1.2px 1.2px at 63% 33%,#e7d6ff,transparent),radial-gradient(1.6px 1.6px at 80% 22%,#fff,transparent),radial-gradient(1.2px 1.2px at 90% 55%,#cfe6ff,transparent),radial-gradient(1.4px 1.4px at 18% 72%,#fff,transparent),radial-gradient(1.2px 1.2px at 38% 88%,#e7d6ff,transparent),radial-gradient(1.6px 1.6px at 58% 78%,#fff,transparent),radial-gradient(1.2px 1.2px at 76% 90%,#cfe6ff,transparent);animation:twinkle 4.5s ease-in-out infinite alternate;}
+  #galaxy-decor .stars2{background-image:radial-gradient(1px 1px at 8% 55%,#fff,transparent),radial-gradient(1px 1px at 33% 22%,#fff,transparent),radial-gradient(1px 1px at 52% 48%,#cfe6ff,transparent),radial-gradient(1px 1px at 70% 8%,#fff,transparent),radial-gradient(1px 1px at 88% 38%,#e7d6ff,transparent),radial-gradient(1px 1px at 22% 95%,#fff,transparent),radial-gradient(1px 1px at 66% 62%,#fff,transparent),radial-gradient(1px 1px at 95% 78%,#cfe6ff,transparent);animation:twinkle 6s ease-in-out .8s infinite alternate;}
+  @keyframes twinkle{from{opacity:.45}to{opacity:1}}
+
+  .controls{position:fixed;top:16px;right:16px;z-index:60;display:flex;gap:10px;}
+  .ctrl{width:46px;height:46px;border-radius:50%;border:1px solid var(--card-border);cursor:pointer;font-family:'Fredoka';font-weight:700;font-size:20px;background:var(--card-bg);color:var(--accent);box-shadow:var(--shadow-sm);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s;}
+  .ctrl:hover{transform:translateY(-2px) scale(1.06);box-shadow:var(--shadow);}
+
+  .wrap{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:32px 20px 60px;}
+  header{text-align:center;margin-bottom:26px;}
+  .badge{display:inline-block;font-family:'Fredoka';font-weight:600;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);background:var(--badge-bg);padding:6px 16px;border-radius:30px;margin-bottom:14px;box-shadow:var(--shadow-sm);}
+  h1{font-family:'Fredoka';font-weight:700;font-size:clamp(36px,7vw,64px);line-height:.95;color:var(--h1-color);text-shadow:var(--h1-shadow);letter-spacing:-1px;}
+  .edition{margin-top:8px;font-family:'Fredoka';font-weight:500;font-size:clamp(15px,3vw,20px);color:var(--ink);}
+  .edition b{color:var(--accent);}
+
+  .card{background:var(--card-bg);backdrop-filter:blur(8px);border-radius:28px;box-shadow:var(--shadow);padding:34px;border:1px solid var(--card-border);}
+  .screen{display:none;animation:pop .45s cubic-bezier(.2,.9,.3,1.2);}
+  .screen.active{display:block;}
+  @keyframes pop{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
+
+  .lead{font-family:'Fredoka';font-weight:600;font-size:24px;text-align:center;margin-bottom:6px;}
+  .sub{text-align:center;color:var(--ink-soft);font-size:15px;margin-bottom:26px;}
+
+  .levels{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media(max-width:680px){.levels{grid-template-columns:1fr;}}
+  .level{cursor:pointer;border:none;text-align:left;border-radius:22px;padding:22px;color:#fff;box-shadow:var(--shadow-sm);transition:transform .18s ease,box-shadow .18s ease;font-family:'Nunito';position:relative;overflow:hidden;}
+  .level:hover{transform:translateY(-6px);box-shadow:var(--shadow);}
+  .level:active{transform:translateY(-2px);}
+  .level .emoji{font-size:34px;display:block;margin-bottom:8px;}
+  .level h3{font-family:'Fredoka';font-weight:600;font-size:22px;margin-bottom:4px;}
+  .level p{font-size:14px;opacity:.95;font-weight:600;}
+  .level .rng{margin-top:10px;font-family:'Fredoka';font-weight:600;font-size:18px;background:rgba(255,255,255,.22);display:inline-block;padding:4px 12px;border-radius:20px;}
+  .lvl-easy{background:linear-gradient(150deg,#5ec6f0,#2b8fd6);}
+  .lvl-normal{background:linear-gradient(150deg,#3da0e6,#0f6bb5);}
+  .lvl-hard{background:linear-gradient(150deg,#0f6bb5,#0a4d82);}
+  body.dark .lvl-easy{background:linear-gradient(150deg,#5a8bff,#3a4fd0);}
+  body.dark .lvl-normal{background:linear-gradient(150deg,#8a5cff,#5a2fc0);}
+  body.dark .lvl-hard{background:linear-gradient(150deg,#b14bff,#6a1fb0);}
+
+  .field-label{font-weight:700;font-size:15px;margin-bottom:10px;display:block;text-align:center;}
+  .num-input{width:100%;font-family:'Fredoka';font-weight:600;font-size:30px;text-align:center;padding:16px;border-radius:18px;border:2px solid var(--input-border);background:var(--input-bg);color:var(--ink);outline:none;transition:border-color .15s,box-shadow .15s;}
+  .num-input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(120,140,236,.28);}
+  .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:18px;}
+
+  .btn{font-family:'Fredoka';font-weight:600;font-size:17px;cursor:pointer;border:none;border-radius:16px;padding:14px 26px;color:#fff;background:var(--btn-grad);box-shadow:var(--shadow-sm);transition:transform .15s,box-shadow .15s,filter .15s;}
+  .btn:hover{transform:translateY(-3px);box-shadow:var(--shadow);}
+  .btn:active{transform:translateY(0);}
+  .btn:disabled{filter:grayscale(.4) opacity(.55);cursor:not-allowed;transform:none;box-shadow:var(--shadow-sm);}
+  .btn.ghost{background:var(--ghost-bg);color:var(--accent);box-shadow:none;border:2px solid var(--input-border);}
+  .hint{text-align:center;color:var(--ink-soft);font-size:13px;margin-top:14px;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:20px;flex-wrap:wrap;}
+  .pill{background:var(--pill-bg);border-radius:30px;padding:8px 16px;font-weight:700;font-size:14px;color:var(--accent);}
+  .turn-indicator{font-family:'Fredoka';font-weight:600;font-size:18px;display:flex;align-items:center;gap:10px;}
+  .dot{width:12px;height:12px;border-radius:50%;background:var(--good);box-shadow:0 0 0 4px rgba(31,174,106,.2);animation:pulse 1.4s infinite;}
+  .dot.bot{background:var(--warn);box-shadow:0 0 0 4px rgba(240,169,59,.2);}
+  @keyframes pulse{50%{transform:scale(1.25)}}
+
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;}
+  @media(max-width:680px){.panels{grid-template-columns:1fr;}}
+  .panel{background:var(--panel-bg);border-radius:22px;padding:20px;border:1px solid var(--panel-border);transition:box-shadow .2s ease,border-color .2s ease;}
+  .you-panel{border:2px solid var(--accent);background:linear-gradient(var(--you-tint),var(--you-tint)),var(--panel-bg);}
+  .panel h4{font-family:'Fredoka';font-weight:600;font-size:18px;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+  .who{font-family:'Fredoka';font-weight:600;font-size:11px;letter-spacing:1px;padding:3px 10px;border-radius:20px;margin-left:auto;color:#fff;}
+  .who.you{background:var(--good);}
+  .who.bot{background:var(--warn);}
+  .panel .meta{font-size:13px;color:var(--ink-soft);margin-bottom:14px;font-weight:600;}
+  .panel.active-turn{box-shadow:0 0 0 3px rgba(31,174,106,.45),var(--shadow-sm);}
+  .bot-panel.active-turn{box-shadow:0 0 0 3px rgba(240,169,59,.5),var(--shadow-sm);}
+  .rangebox{background:var(--range-grad);color:#fff;border-radius:14px;padding:12px;text-align:center;font-family:'Fredoka';font-weight:600;font-size:16px;margin-bottom:14px;line-height:1.35;}
+  .rangebox span{font-size:22px;}
+  .rangebox.final{background:linear-gradient(150deg,#f6b955,#e8902a);animation:flash .5s ease;}
+  @keyframes flash{from{transform:scale(.94)}to{transform:scale(1)}}
+
+  .log{list-style:none;display:flex;flex-direction:column;gap:8px;max-height:230px;overflow-y:auto;padding-right:4px;}
+  .log li{display:flex;align-items:center;justify-content:space-between;background:var(--item-bg);border-radius:12px;padding:9px 14px;box-shadow:var(--shadow-sm);animation:pop .3s ease;}
+  .log .g{font-family:'Fredoka';font-weight:600;font-size:18px;}
+  .tag{font-weight:800;font-size:13px;padding:4px 12px;border-radius:20px;display:flex;align-items:center;gap:5px;}
+  .tag.higher{background:var(--tag-higher-bg);color:var(--tag-higher-fg);}
+  .tag.lower{background:var(--tag-lower-bg);color:var(--tag-lower-fg);}
+  .tag.correct{background:var(--tag-correct-bg);color:var(--tag-correct-fg);}
+  .tag.wrong{background:var(--tag-wrong-bg);color:var(--tag-wrong-fg);}
+  .empty{color:var(--ink-soft);font-size:14px;text-align:center;padding:18px 0;font-style:italic;}
+
+  .guess-wrap{border-top:1px dashed var(--panel-border);margin-top:16px;padding-top:16px;}
+  .guess-label{display:block;text-align:center;font-weight:700;font-size:13px;color:var(--accent);margin-bottom:10px;}
+  .guess-area{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;}
+  .guess-area .num-input{flex:1;min-width:120px;max-width:200px;font-size:24px;padding:12px;}
+  .guess-area .btn{padding:12px 22px;}
+  .feedback{text-align:center;min-height:24px;margin-top:10px;font-weight:700;color:var(--bad);font-size:14px;}
+
+  .overlay{position:fixed;inset:0;background:rgba(10,14,30,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:80;padding:20px;}
+  .overlay.active{display:flex;animation:fade .3s ease;}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .modal{background:var(--modal-bg);border-radius:28px;padding:36px;max-width:460px;width:100%;text-align:center;box-shadow:var(--shadow);border:1px solid var(--card-border);animation:pop .4s cubic-bezier(.2,.9,.3,1.2);color:var(--ink);}
+  .modal .res-emoji{font-size:60px;}
+  .modal h2{font-family:'Fredoka';font-weight:700;font-size:30px;margin:6px 0 10px;}
+  .modal p{color:var(--ink-soft);font-size:16px;margin-bottom:8px;}
+  .reveal{display:flex;gap:12px;justify-content:center;margin:18px 0;}
+  .reveal div{background:var(--panel-bg);border-radius:16px;padding:14px 18px;flex:1;}
+  .reveal .n{font-family:'Fredoka';font-weight:700;font-size:30px;color:var(--accent);}
+  .reveal .l{font-size:12px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:1px;}
+  .toolbar{display:flex;justify-content:center;gap:12px;margin-top:22px;flex-wrap:wrap;}
+
+  .rules{text-align:left;margin:6px 0 4px;}
+  .rules .r{display:flex;gap:12px;padding:12px 0;border-bottom:1px dashed var(--panel-border);}
+  .rules .r:last-child{border-bottom:none;}
+  .rules .ic{font-size:24px;flex:0 0 auto;line-height:1.2;}
+  .rules .tx b{font-family:'Fredoka';font-weight:600;display:block;margin-bottom:2px;font-size:16px;color:var(--ink);}
+  .rules .tx{font-size:14px;color:var(--ink-soft);line-height:1.45;}
+  .modal.help h2{margin-bottom:6px;}
+
+  .footer{text-align:center;margin-top:26px;font-size:12px;color:var(--ink-soft);opacity:.85;font-weight:600;letter-spacing:.3px;}
+  .footer b{font-family:'Fredoka';font-weight:600;color:var(--accent);}
+</style>
+</head>
+<body>
+  <div id="sky-decor"><div class="sun"></div><div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div></div>
+  <div id="galaxy-decor"><div class="nebula"></div><div class="stars"></div><div class="stars2"></div><div class="moon"></div></div>
+
+  <div class="controls">
+    <button class="ctrl" id="music-btn" onclick="toggleMusic()" title="Music on / off" aria-label="Music on / off">🔇</button>
+    <button class="ctrl" id="theme-btn" onclick="toggleTheme()" title="Switch day / night">🌙</button>
+    <button class="ctrl" onclick="openHelp()" title="How to play" aria-label="How to play">?</button>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <span class="badge">☁️ Sky Challenge</span>
+      <h1>Guess My Number</h1>
+      <div class="edition">Play with <b>Dev 'Lin Edition'</b> ✨</div>
+    </header>
+
+    <!-- SCREEN 1 -->
+    <section id="screen-level" class="screen active">
+      <div class="card">
+        <div class="lead">Choose your altitude ✈️</div>
+        <div class="sub">Pick a difficulty. You and Dev Lin each pick a secret number in this range.</div>
+        <div class="levels">
+          <button class="level lvl-easy" onclick="chooseLevel('easy')"><span class="emoji">🌤️</span><h3>Easy</h3><p>A gentle breeze</p><span class="rng">0 – 50</span></button>
+          <button class="level lvl-normal" onclick="chooseLevel('normal')"><span class="emoji">⛅</span><h3>Normal</h3><p>Steady winds</p><span class="rng">0 – 100</span></button>
+          <button class="level lvl-hard" onclick="chooseLevel('hard')"><span class="emoji">🌩️</span><h3>Hardcore</h3><p>Stratosphere</p><span class="rng">0 – 1000</span></button>
+        </div>
+        <div class="hint">⚡ Final Guess Phase auto-starts when the window narrows to <b>8</b> (Easy), <b>10</b> (Normal) or <b>12</b> (Hardcore). Tap <b>?</b> for full rules.</div>
+      </div>
+    </section>
+
+    <!-- SCREEN 2 -->
+    <section id="screen-secret" class="screen">
+      <div class="card">
+        <div class="lead">Pick your secret number 🤫</div>
+        <div class="sub" id="secret-range-text"></div>
+        <label class="field-label" for="secret-input">Keep it hidden — Dev Lin will try to guess it!</label>
+        <input id="secret-input" class="num-input" type="number" inputmode="numeric" placeholder="? ? ?" autocomplete="off">
+        <div class="feedback" id="secret-feedback"></div>
+        <div class="row">
+          <button class="btn ghost" onclick="randomSecret()">🎲 Random for me</button>
+          <button class="btn" onclick="confirmSecret()">Lock it in 🔒</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3 -->
+    <section id="screen-game" class="screen">
+      <div class="card">
+        <div class="topbar">
+          <span class="pill" id="level-pill"></span>
+          <div class="turn-indicator"><span class="dot" id="turn-dot"></span><span id="turn-text">Your turn</span></div>
+          <span class="pill" id="count-pill">You 0 • Dev Lin 0</span>
+        </div>
+        <div class="panels">
+          <!-- YOUR board — your guess controls live INSIDE it -->
+          <div class="panel you-panel" id="you-panel">
+            <h4>🎯 Your Hunt <span class="who you">YOU</span></h4>
+            <div class="meta">Find Dev Lin's secret number</div>
+            <div class="rangebox" id="human-range">It's somewhere in <span id="human-range-span">0 – 0</span></div>
+            <ul class="log" id="human-log"><li class="empty">Make your first guess below…</li></ul>
+            <div class="guess-wrap">
+              <label class="guess-label" for="guess-input">👇 Type YOUR guess here</label>
+              <div class="guess-area">
+                <input id="guess-input" class="num-input" type="number" inputmode="numeric" placeholder="Guess" autocomplete="off">
+                <button class="btn" id="guess-btn" onclick="submitGuess()">Guess ➜</button>
+              </div>
+              <div class="feedback" id="guess-feedback"></div>
+            </div>
+          </div>
+          <!-- Dev Lin's board — view only -->
+          <div class="panel bot-panel" id="bot-panel">
+            <h4>🤖 Dev Lin's Hunt <span class="who bot">BOT</span></h4>
+            <div class="meta">The bot is hunting your number (just watch)</div>
+            <div class="rangebox" id="bot-range">Searching <span id="bot-range-span">0 – 0</span></div>
+            <ul class="log" id="bot-log"><li class="empty">Waiting for the game to start…</li></ul>
+          </div>
+        </div>
+        <div class="hint" id="phase-hint"></div>
+      </div>
+    </section>
+
+    <footer class="footer">© 2026 <b>Lin Khant Wai Yan</b> — This game is all rights reserved.</footer>
+  </div>
+
+  <!-- result modal -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <div class="res-emoji" id="res-emoji">🏆</div>
+      <h2 id="res-title">You win!</h2>
+      <p id="res-text"></p>
+      <div class="reveal">
+        <div><div class="l">Your number</div><div class="n" id="reveal-human">–</div></div>
+        <div><div class="l">Dev Lin's number</div><div class="n" id="reveal-bot">–</div></div>
+      </div>
+      <div class="toolbar"><button class="btn" onclick="restart()">Play again ☁️</button></div>
+    </div>
+  </div>
+
+  <!-- help modal -->
+  <div class="overlay" id="help-overlay" onclick="if(event.target===this)closeHelp()">
+    <div class="modal help">
+      <div class="res-emoji">📖</div>
+      <h2>How to Play</h2>
+      <p>Guess My Number — Dev 'Lin Edition'</p>
+      <div class="rules">
+        <div class="r"><span class="ic">🎯</span><div class="tx"><b>Goal</b>Be the first to guess your opponent's secret number.</div></div>
+        <div class="r"><span class="ic">🔢</span><div class="tx"><b>Setup</b>You and Dev Lin each pick a hidden number in the chosen range — Easy 0–50, Normal 0–100, or Hardcore 0–1000.</div></div>
+        <div class="r"><span class="ic">📱</span><div class="tx"><b>Your board</b>The left board marked <b style="color:var(--good)">YOU</b> is yours — type your guesses there. The right board marked <b style="color:var(--warn)">BOT</b> just shows what Dev Lin is doing.</div></div>
+        <div class="r"><span class="ic">🔁</span><div class="tx"><b>Taking turns</b>You guess first, then Dev Lin. After each guess you're told <b style="color:var(--good)">Higher</b> (the secret is bigger), <b style="color:var(--bad)">Lower</b> (smaller), or <b>Correct</b>.</div></div>
+        <div class="r"><span class="ic">⚡</span><div class="tx"><b>Final Guess Phase (automatic)</b>Once the window narrows to within <b>8</b> (Easy), <b>10</b> (Normal) or <b>12</b> (Hardcore), hints stop. Replies become only <b>Correct</b> or <b>Wrong</b>, and you must guess <b>inside that window</b>, one number at a time.</div></div>
+        <div class="r"><span class="ic">🏆</span><div class="tx"><b>Winning</b>The first hunter to land <b>Correct</b> wins. You always move first each round, so a sharp search gives you the edge!</div></div>
+        <div class="r"><span class="ic">🌙</span><div class="tx"><b>Day / Night</b>Tap the moon / sun button any time to switch between the sky theme and the galaxy night theme.</div></div>
+      </div>
+      <div class="toolbar"><button class="btn" onclick="closeHelp()">Got it! 👍</button></div>
+    </div>
+  </div>
+
+<script>
+"use strict";
+
+const RANGES = {
+  easy:   { min:0, max:50,   gap:8,  label:"Easy 🌤️ (0–50)" },
+  normal: { min:0, max:100,  gap:10, label:"Normal ⛅ (0–100)" },
+  hard:   { min:0, max:1000, gap:12, label:"Hardcore 🌩️ (0–1000)" }
+};
+
+let S = null;
+
+/* ---------- Theme ---------- */
+function applyTheme(dark){
+  document.body.classList.toggle('dark', dark);
+  document.getElementById('theme-btn').textContent = dark ? '☀️' : '🌙';
+  try{ localStorage.setItem('gmn-theme', dark ? 'dark' : 'light'); }catch(e){}
+}
+function toggleTheme(){ applyTheme(!document.body.classList.contains('dark')); }
+(function initTheme(){ let saved=null; try{ saved=localStorage.getItem('gmn-theme'); }catch(e){} applyTheme(saved==='dark'); })();
+
+/* ---------- Help ---------- */
+function openHelp(){ document.getElementById('help-overlay').classList.add('active'); }
+function closeHelp(){ document.getElementById('help-overlay').classList.remove('active'); }
+
+/* ---------- Background music (generated, no audio files) ---------- */
+let audioCtx=null, masterGain=null, musicTimer=null, musicOn=false, mPos=0;
+const M_STEP_MS=210; // ~140 BPM, eighth notes
+// A cheerful, bouncy original tune in C major (32 steps = 4 bars). 0 = rest.
+const C5=523.25,D5=587.33,E5=659.25,G4=392.00,A4=440.00,B4=493.88;
+const M_LEAD=[
+  C5,0,E5,0, D5,0,C5,0,      // bar 1
+  G4,0,C5,0, B4,0,0,0,       // bar 2
+  D5,0,E5,0, D5,0,C5,0,      // bar 3
+  G4,0,A4,B4, C5,0,0,0       // bar 4
+];
+const M_BASS=[130.81,98.00,130.81,98.00]; // C2, G2 per bar
+function initAudio(){
+  if(audioCtx) return;
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC) return;
+  audioCtx=new AC();
+  masterGain=audioCtx.createGain();
+  masterGain.gain.value=0.0001;
+  masterGain.connect(audioCtx.destination);
+}
+function mNote(freq,dur,vol,type){
+  const t=audioCtx.currentTime+0.02;
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type=type||'triangle'; o.frequency.value=freq;
+  o.connect(g); g.connect(masterGain);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol,t+0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.start(t); o.stop(t+dur+0.05);
+}
+function mTick(){
+  if(!audioCtx) return;
+  // bass note at the start of each 8-step bar
+  if(mPos%8===0){
+    const b=M_BASS[(Math.floor(mPos/8))%M_BASS.length];
+    mNote(b,1.5,0.13,'triangle');
+    mNote(b*2,1.4,0.05,'sine');
+  }
+  const f=M_LEAD[mPos%M_LEAD.length];
+  if(f){
+    const nextRest = M_LEAD[(mPos+1)%M_LEAD.length]===0;
+    mNote(f, nextRest?0.36:0.22, 0.11, 'triangle');
+  }
+  mPos++;
+  if(mPos>=M_LEAD.length) mPos=0;
+}
+function toggleMusic(){
+  initAudio();
+  if(!audioCtx) return;
+  musicOn=!musicOn;
+  const btn=document.getElementById('music-btn');
+  const now=audioCtx.currentTime;
+  masterGain.gain.cancelScheduledValues(now);
+  masterGain.gain.setValueAtTime(Math.max(masterGain.gain.value,0.0001),now);
+  if(musicOn){
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    btn.textContent='🔊';
+    masterGain.gain.linearRampToValueAtTime(0.9,now+0.5);
+    if(!musicTimer){ mPos=0; mTick(); musicTimer=setInterval(mTick,M_STEP_MS); }
+  } else {
+    btn.textContent='🔇';
+    masterGain.gain.linearRampToValueAtTime(0.0001,now+0.35);
+    if(musicTimer){ clearInterval(musicTimer); musicTimer=null; }
+  }
+}
+
+/* ---------- Utils ---------- */
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function setFb(msg,color){ const fb=document.getElementById('guess-feedback'); fb.style.color=color||'var(--bad)'; fb.textContent=msg; }
+
+/* ---------- Level ---------- */
+function chooseLevel(level){
+  const r = RANGES[level];
+  S = {
+    level, min:r.min, max:r.max, gap:r.gap,
+    humanSecret:null, botSecret: rand(r.min, r.max),
+    humanLow:r.min, humanHigh:r.max,
+    humanGuesses:[], humanCount:0, humanFinal:false, humanFound:false,
+    botLow:r.min, botHigh:r.max,
+    botGuesses:[], botCount:0, botFinal:false, botFinalPtr:r.min, botFound:false,
+    turn:'human', gameOver:false
+  };
+  document.getElementById('secret-range-text').textContent = `Choose a whole number from ${r.min} to ${r.max}.`;
+  const si=document.getElementById('secret-input');
+  si.value=''; si.min=r.min; si.max=r.max;
+  document.getElementById('secret-feedback').textContent='';
+  show('screen-secret');
+  setTimeout(()=>si.focus(),120);
+}
+
+/* ---------- Secret ---------- */
+function randomSecret(){ document.getElementById('secret-input').value = rand(S.min,S.max); document.getElementById('secret-feedback').textContent=''; }
+function confirmSecret(){
+  const raw=document.getElementById('secret-input').value;
+  const fb=document.getElementById('secret-feedback');
+  const n=parseInt(raw,10);
+  if(raw.trim()===''||isNaN(n)){ fb.textContent='Please enter a number.'; return; }
+  if(n<S.min||n>S.max){ fb.textContent=`Number must be between ${S.min} and ${S.max}.`; return; }
+  S.humanSecret=n; startGame();
+}
+
+/* ---------- Start ---------- */
+function startGame(){
+  document.getElementById('level-pill').textContent = RANGES[S.level].label;
+  document.getElementById('human-log').innerHTML = '<li class="empty">Make your first guess below…</li>';
+  document.getElementById('bot-log').innerHTML   = '<li class="empty">Dev Lin guesses after your turn…</li>';
+  const gi=document.getElementById('guess-input');
+  gi.value=''; gi.min=S.min; gi.max=S.max; gi.placeholder='Guess';
+  document.getElementById('guess-feedback').textContent='';
+  document.getElementById('phase-hint').innerHTML =
+    `Narrow it with Higher/Lower hints. Within <b>${S.gap}</b> numbers, hints stop and the Final Guess Phase begins automatically.`;
+  show('screen-game');
+  renderRanges(); renderTurn(); renderCount();
+  setTimeout(()=>gi.focus(),120);
+}
+
+/* ---------- Render ---------- */
+function renderRanges(){
+  const hr=document.getElementById('human-range');
+  if(S.humanFinal){
+    hr.classList.add('final');
+    hr.innerHTML = `⚡ Final Phase! Guess between <b>${S.humanLow}</b> and <b>${S.humanHigh}</b> — one by one, no more hints.`;
+  } else {
+    hr.classList.remove('final');
+    hr.innerHTML = "It's somewhere in <span id='human-range-span'></span>";
+    document.getElementById('human-range-span').textContent = `${S.humanLow} – ${S.humanHigh}`;
+  }
+  const br=document.getElementById('bot-range');
+  if(S.botFinal){
+    br.classList.add('final');
+    br.innerHTML = `⚡ Dev Lin reached Final Phase (${S.botLow}–${S.botHigh}) — guessing one by one.`;
+  } else {
+    br.classList.remove('final');
+    br.innerHTML = "Searching <span id='bot-range-span'></span>";
+    document.getElementById('bot-range-span').textContent = `${S.botLow} – ${S.botHigh}`;
+  }
+}
+function renderTurn(){
+  const dot=document.getElementById('turn-dot'), txt=document.getElementById('turn-text');
+  const yp=document.getElementById('you-panel'), bp=document.getElementById('bot-panel');
+  if(S.turn==='human'){ dot.classList.remove('bot'); txt.textContent='Your turn'; yp.classList.add('active-turn'); bp.classList.remove('active-turn'); }
+  else { dot.classList.add('bot'); txt.textContent='Dev Lin is thinking…'; bp.classList.add('active-turn'); yp.classList.remove('active-turn'); }
+}
+function renderCount(){ document.getElementById('count-pill').textContent = `You ${S.humanCount} • Dev Lin ${S.botCount}`; }
+function tagFor(r){
+  if(r==='Higher')return '<span class="tag higher">▲ Higher</span>';
+  if(r==='Lower')return '<span class="tag lower">▼ Lower</span>';
+  if(r==='Correct')return '<span class="tag correct">✓ Correct</span>';
+  return '<span class="tag wrong">✗ Wrong</span>';
+}
+function renderLog(which){
+  const list = which==='human'? S.humanGuesses : S.botGuesses;
+  const el = document.getElementById(which==='human'?'human-log':'bot-log');
+  if(list.length===0) return;
+  el.innerHTML = list.map(i=>`<li><span class="g">${i.guess}</span>${tagFor(i.result)}</li>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+/* ---------- Human turn ---------- */
+function submitGuess(){
+  if(!S || S.gameOver || S.turn!=='human') return;
+  const input=document.getElementById('guess-input');
+  const raw=input.value; const g=parseInt(raw,10);
+
+  if(raw.trim()===''||isNaN(g)){ setFb('Type a number to guess.'); return; }
+  if(g<S.min||g>S.max){ setFb(`Guess must be between ${S.min} and ${S.max}.`); return; }
+
+  // Final Phase: must guess inside the known window, and no repeats
+  if(S.humanFinal){
+    if(g < S.humanLow || g > S.humanHigh){
+      setFb(`⚡ Final Phase — you must guess between ${S.humanLow} and ${S.humanHigh}.`, 'var(--warn)');
+      return;
+    }
+    if(S.humanGuesses.some(x=>x.guess===g)){
+      setFb(`You already tried ${g}. Pick another between ${S.humanLow} and ${S.humanHigh}.`, 'var(--warn)');
+      return;
+    }
+  }
+  setFb('');
+
+  S.humanCount++;
+  let result;
+  if(g === S.botSecret){
+    result='Correct'; S.humanGuesses.push({guess:g,result}); S.humanFound=true;
+    renderLog('human'); renderCount(); endGame('human'); return;
+  }
+  if(S.humanFinal){
+    result='Wrong';
+  } else if(S.botSecret > g){
+    result='Higher'; if(g+1 > S.humanLow) S.humanLow = g+1;
+  } else {
+    result='Lower'; if(g-1 < S.humanHigh) S.humanHigh = g-1;
+  }
+  S.humanGuesses.push({guess:g,result});
+
+  // auto-trigger Final Guess Phase
+  if(!S.humanFinal && (S.humanHigh - S.humanLow) <= S.gap){
+    S.humanFinal = true;
+    input.min=S.humanLow; input.max=S.humanHigh; input.placeholder=`${S.humanLow}–${S.humanHigh}`;
+    setFb(`⚡ Final Guess Phase! Guess between ${S.humanLow} and ${S.humanHigh} — no more hints.`, 'var(--warn)');
+    setTimeout(()=>{ if(!S.gameOver && S.turn==='human') setFb(''); },2800);
+  }
+
+  renderLog('human'); renderRanges(); renderCount();
+  S.turn='bot'; renderTurn(); setInputsEnabled(false); input.value='';
+  setTimeout(botTurn, 950);
+}
+
+/* ---------- Bot turn ---------- */
+function botTurn(){
+  if(!S || S.gameOver) return;
+  let g;
+  if(S.botFinal){ if(S.botFinalPtr < S.botLow) S.botFinalPtr = S.botLow; g = S.botFinalPtr; }
+  else { g = Math.floor((S.botLow + S.botHigh) / 2); }
+
+  S.botCount++;
+  let result;
+  if(g === S.humanSecret){
+    result='Correct'; S.botGuesses.push({guess:g,result}); S.botFound=true;
+    renderLog('bot'); renderCount(); endGame('bot'); return;
+  }
+  if(S.botFinal){ result='Wrong'; S.botFinalPtr++; }
+  else if(S.humanSecret > g){ result='Higher'; S.botLow = g+1; }
+  else { result='Lower'; S.botHigh = g-1; }
+  S.botGuesses.push({guess:g,result});
+
+  if(!S.botFinal && (S.botHigh - S.botLow) <= S.gap){ S.botFinal=true; S.botFinalPtr=S.botLow; }
+
+  renderLog('bot'); renderRanges(); renderCount();
+  S.turn='human'; renderTurn(); setInputsEnabled(true);
+  document.getElementById('guess-input').focus();
+}
+
+function setInputsEnabled(on){
+  document.getElementById('guess-input').disabled = !on;
+  document.getElementById('guess-btn').disabled = !on;
+}
+
+/* ---------- End ---------- */
+function endGame(winner){
+  S.gameOver=true; setInputsEnabled(false);
+  document.getElementById('you-panel').classList.remove('active-turn');
+  document.getElementById('bot-panel').classList.remove('active-turn');
+  const emoji=document.getElementById('res-emoji'), title=document.getElementById('res-title'), text=document.getElementById('res-text');
+  if(winner==='human'){
+    emoji.textContent='🏆'; title.textContent='You win!';
+    text.innerHTML=`You cracked Dev Lin's number in <b>${S.humanCount}</b> guess${S.humanCount===1?'':'es'} — before the bot got yours. Sky high! ☁️`;
+  } else {
+    emoji.textContent='🤖'; title.textContent='Dev Lin wins!';
+    text.innerHTML=`Dev Lin found your number in <b>${S.botCount}</b> guess${S.botCount===1?'':'es'}. You'd used <b>${S.humanCount}</b>. Try a sharper search next time!`;
+  }
+  document.getElementById('reveal-human').textContent=S.humanSecret;
+  document.getElementById('reveal-bot').textContent=S.botSecret;
+  setTimeout(()=>document.getElementById('overlay').classList.add('active'),500);
+}
+
+/* ---------- Restart ---------- */
+function restart(){ document.getElementById('overlay').classList.remove('active'); S=null; setInputsEnabled(true); show('screen-level'); }
+
+document.getElementById('secret-input').addEventListener('keydown',e=>{ if(e.key==='Enter') confirmSecret(); });
+document.getElementById('guess-input').addEventListener('keydown',e=>{ if(e.key==='Enter') submitGuess(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHelp(); });
+</script>
+</body>
+</html>
